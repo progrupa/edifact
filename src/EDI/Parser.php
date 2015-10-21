@@ -1,138 +1,119 @@
 <?php
-/*
-EDIFACT Messages Parser
-(c)2014 Stefano Sabatini
-
-INPUT
-	$c=new Parser(X);
-		Where X could be:
-		-an url
-		-a string (wrapped message)
-		-an array of strings (a segment per entry)
-	or
-	$c=new Parser();
-	followed by parse, load and/or unwrap
-
-OUTPUT
-	Errors $c->errors()
-	Array  $c->get()
-*/
 
 namespace EDI;
 
 class Parser
 {
-	private $parsedfile;
-	private $obj;
-	private $errors;
+	private $parsedData = array();
 
-	public function __construct($url=null)
+	private $errors = array();
+
+	public function __construct($source = null)
 	{
-		$errors=array();
-		if($url===null) return;
+		if(is_null($source)) {
+            return;
+        }
 
-		if (is_array($url)) //ARRAY
-		{
-			$tmparr=$url;
-			if (count($url)==1) //containing only one row
-			{
-				$tmparr=$this->unwrap($url[0]);
-			}
-			$this->parse($tmparr);
-		}
-		else
-		if (file_exists($url))
-			$this->load($url); //FILE URL
-		else
-		{
-			$this->parse($this->unwrap($url)); //STRING
-		}
+        $this->parse($source);
 	}
 
 	//Parse edi array
-	function parse($file2)
+	public function parse($data)
 	{
-		$i=0;
-		foreach ($file2 as $x=>&$line)
-		{
-			$i++;
+        if (is_array($data)) { //ARRAY
+            if (count($data) == 1) { //containing only one row
+                $data = $this->unwrapString(reset($data));
+            }
+        } elseif (file_exists($data)) {
+            $data = $this->loadFile($data); //FILE URL
+        } else {
+            $data = $this->unwrapString($data);
+        }
+
+		$i = 0;
+		foreach ($data as $x => &$line) {
+            $i++;
 			$line = preg_replace('#[\r\n]#', '', $line); //carriage return removal (CR+LF)
 			if (preg_match("/[\x01-\x1F\x80-\xFF]/",$line))
-				$this->errors[]="There's a not printable character on line ".($x+1).": ". $line;
+				$this->errors[] = "There's a not printable character on line ".($x+1).": ". $line;
 			$line = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $line); //basic sanitization, remove non printable chars
-			if (strlen($line)==0 || substr( $line, 0, 3 ) === "UNA")
+			if (strlen($line) == 0 || substr( $line, 0, 3 ) === "UNA")
 			{
-				unset($file2[$x]);
+				unset($data[$x]);
 				continue;
 			}
-			if (strrpos($line,"'")!=strlen($line)-1)
-				$this->errors[]='Segment not ended correctly at line '.$i. "=>". $line;
-			$line=$this->splitSegment($line);
+			if (strrpos($line,"'") != strlen($line)-1)
+				$this->errors[] = 'Segment not ended correctly at line '.$i. "=>". $line;
+			$line = $this->splitSegment($line);
 		}
-		$this->parsedfile=array_values($file2); //reindex
-		return $file2;
+		$this->parsedData = array_values($data); //reindex
+		return $data;
 	}
 
 	//unwrap string splitting rows on terminator (if not escaped)
-	function unwrap($string)
+	public function unwrapString($string)
 	{
-		$file2=array();
-		$file=preg_split("/(?<!\?)'/i", $string);
-		foreach($file as &$line)
-		{
-			$temp=trim($line)."'";
-			if($temp!="'")
-				$file2[]=$temp;
+        $lines = explode("\n", str_replace("\n\r", "\n", $string));
+        $segments = array();
+        foreach ($lines as $line) {
+            $segments = array_merge($segments, preg_split("/(.*?(?<!\?)')/", $line, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE));
+        }
+
+        $unwrapped = array();
+		foreach($segments as &$segment) {
+            $unwrapped[] = trim($segment);
 		}
-		return $file2;
+		return $unwrapped;
 	}
 
+    //Get errors
+    public function errors()
+    {
+        return $this->errors;
+    }
+
+    /**
+     * @return array
+     */
+    public function getParsedData()
+    {
+        return $this->parsedData;
+    }
+
 	//Segments
-	function splitSegment($str)
+	protected function splitSegment($str)
 	{
 		$str = strrev(preg_replace("/'/", "", strrev($str), 1));//remove ending " ' "
-		$matches=preg_split("/(?<!\?)\+/", $str); //split on + if not escaped (negative lookbehind)
+		$matches = preg_split("/(?<!\?)\+/", $str); //split on + if not escaped (negative lookbehind)
 		foreach ($matches as &$value)
 		{
 			if (preg_match("/(?<!\?)'/",$value))
-				$this->errors[]="There's a ' not escaped in the data; string ". $str;
+				$this->errors[] = "There's a ' not escaped in the data; string ". $str;
 			if (preg_match("/(?<!\?)\?(?!\?)(?!\+)(?!:)(?!')/",$value))
-				$this->errors[]="There's a character not escaped with ? in the data; string ". $value;
-			$value=$this->splitData($value); //split on :
+				$this->errors[] = "There's a character not escaped with ? in the data; string ". $value;
+			$value = $this->splitData($value); //split on :
 		}
 		return $matches;
 	}
 
 	//Composite data element
-	function splitData($str)
+	protected function splitData($str)
 	{
-		$arr=preg_split("/(?<!\?):/", $str); //split on : if not escaped (negative lookbehind)
-		if (count($arr)==1)
+		$arr = preg_split("/(?<!\?):/", $str); //split on : if not escaped (negative lookbehind)
+		if (count($arr) == 1)
 			return preg_replace("/\?(?=\?)|\?(?=\+)|\?(?=:)|\?(?=')/", "",$str); //remove ? if not escaped
 		foreach ($arr as &$value)
-			$value=preg_replace("/\?(?=\?)|\?(?=\+)|\?(?=:)|\?(?=')/", "",$value);
+			$value = preg_replace("/\?(?=\?)|\?(?=\+)|\?(?=:)|\?(?=')/", "",$value);
 		return $arr;
 	}
 
-	//Get errors
-	function errors()
+	protected function loadFile($url)
 	{
-		return $this->errors;
-	}
-
-	//Get result
-	function get()
-	{
-		return $this->parsedfile;
-	}
-
-	function load($url)
-	{
-		$file=file($url);
-		if (count($file)==1) //containing only one row
+		$fileContent = file($url);
+		if (count($fileContent) == 1) //containing only one row
 		{
-			return $this->parse($this->unwrap($file[0]));
+            $fileContent = $this->unwrapString($fileContent[0]);
 		}
-		return $this->parse($file);
+		return $fileContent;
 	}
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<data_elements>
+    <data_element id="1001">
+        <code id="1" desc="Certificate of analysis"/>
+        <code id="2" desc="Certificate of conformity"/>
+        <code id="3" desc="Certificate of quality"/>
+    </data_element>
+</data_elements>

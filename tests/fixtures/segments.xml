@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<segments>
+    <segment id="ADR" name="address" desc="To specify an address.">
+        <data_element id="3164" name="cityName" usage="C" desc="Name of a city." type="an" maxlength="35"/>
+        <composite_data_element id="C517" name="locationIdentification" desc="Identification of a location by code or name.">
+            <data_element id="3225" name="locationNameCode" usage="C" desc="Code specifying the name of the location." type="an" maxlength="25"></data_element>
+            <data_element id="1131" name="codeListIdentificationCode" usage="C" desc="Code identifying a code list." type="an" maxlength="3"></data_element>
+        </composite_data_element>
+    </segment>
+</segments>

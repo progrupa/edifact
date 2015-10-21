@@ -1,66 +1,58 @@
 <?php
-/*
-EDIFACT Messages Reader
-Uldis Nelsons
-
-INPUT
-	$r=new Reader(X);
-		Where X could be:
-		-an url
-		-a string (wrapped message)
-		-an array of strings (a segment per entry)
-	or
-	$r=new Reader();
-	followed by parse, load and/or unwrap
-	
-OUTPUT
-	Errors $c->errors()
-	Array  $c->get()
-*/
 
 namespace EDI;
 
+use Doctrine\Common\Annotations\AnnotationReader;
+use EDI\Annotations\Mandatory;
+use EDI\Annotations\SegmentPiece;
+use EDI\Exception\MappingNotFoundException;
+use EDI\Mapping\MappingLoader;
+use EDI\Message\Interchange;
+
 class Reader
 {
-	private $parsedfile;
+    /** @var  AnnotationReader */
+    private $annotationReader;
+    /** @var Parser EDI message parser */
+    private $parser;
+    /** @var  array Segments defined in active mapping */
+    private $segments;
+    /** @var  array Data element fields descriptions */
+    private $codes;
+    /** @var array Errors found when reading EDIFACT message */
 	private $errors = array();
 
-	public function __construct($url=null)
+	public function __construct(AnnotationReader $annotationReader, Parser $parser, MappingLoader $mappingLoader, $mappingDirectory)
 	{
-        $errors=array();
-        $this->load($url);
+        $this->annotationReader = $annotationReader;
+        $this->parser = $parser;
+        $dir = realpath($mappingDirectory);
+        if (! file_exists($dir)) {
+            throw new MappingNotFoundException(sprintf("Mapping directory '%s' not found", $mappingDirectory));
+        }
+
+        $segmentsFile = $dir .'/segments.xml';
+        if (! file_exists($segmentsFile) || !is_readable($segmentsFile)) {
+            throw new MappingNotFoundException(sprintf("segments.xml mapping file not found in directory '%s'", $mappingDirectory));
+        }
+        $this->segments = $mappingLoader->load($segmentsFile);
+
+        $codesFile = $dir .'/codes.xml';
+        if (! file_exists($codesFile) || !is_readable($codesFile)) {
+            throw new MappingNotFoundException(sprintf("codes.xml mapping file not found in directory '%s'", $mappingDirectory));
+        }
+        $this->codes = $mappingLoader->loadCodes($codesFile);
 	}
 
-	//Get errors
 	function errors()
 	{
 		return $this->errors;
 	}
 
-    // reset errors
 	function resetErrors()
 	{
 		$this->errors = array();
 	}
-	
-	/**
-	 * Returns the parsed file contained within.
-	 * @returns array
-	 */
-	public function getParsedFile()
-	{
-		return $this->parsedfile;
-	}
-	
-	function load($url)
-	{
-        $Parser = new \EDI\Parser($url);
-        $this->parsedfile = $Parser->get();
-	}
-    
-    function setParsedFile($parsed_file){
-        $this->parsedfile = $parsed_file;
-    }
 
 	public function readEdiDataValueReq($filter,$l1,$l2 = false) {    
         return $this->readEdiDataValue($filter, $l1, $l2,true);
@@ -295,5 +287,47 @@ class Reader
         return $groups;
         
     }
-    
+
+    /**
+     * @param $message
+     * @return Interchange
+     */
+    public function transform($message)
+    {
+        $interchange = new Interchange();
+
+        $transformed = $this->parser->parse($message);
+
+        $this->populateObject($interchange, $transformed);
+
+        return $interchange;
+    }
+
+    private function populateObject($object, $data)
+    {
+        $segmentData = array_shift($data);
+        $classRefl = new \ReflectionClass($object);
+
+        foreach ($classRefl->getProperties() as $propRefl) {
+            $annotations = $this->annotationReader->getPropertyAnnotations($propRefl);
+            foreach ($annotations as $annotation) {
+                if ($annotation instanceof SegmentPiece) {
+                    $piece = $segmentData[$annotation->position];
+                    $propRefl->setAccessible(true);
+                    if ($annotation->parts) {
+                        $value = array();
+                        $i = 0;
+                        foreach ($annotation->parts as $part) {
+                            $value[$part] = isset($piece[$i]) ? $piece[$i] : null;
+                            ++$i;
+                        }
+                        $propRefl->setValue($object, $value);
+                    } else {
+                        $propRefl->setValue($object, $piece);
+                    }
+                }
+            }
+        }
+    }
+
 }
