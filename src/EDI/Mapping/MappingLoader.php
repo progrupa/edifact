@@ -4,7 +4,28 @@ namespace EDI\Mapping;
 
 class MappingLoader
 {
-    public function load($mapping)
+    public function loadMessage($mapping)
+    {
+        return new MessageMapping();
+//        $segmentsXml = simplexml_load_file($mapping);
+//        $segments = array();
+//        /** @var \SimpleXMLElement $segmentXml */
+//        foreach ($segmentsXml->children() as $segmentXml) {
+//            $segment = new SegmentMapping((string) $segmentXml->attributes()->id);
+//            /** @var \SimpleXMLElement $dataElementXml */
+//            foreach ($segmentXml->children() as $dataElementXml) {
+//                $dataElement = $this->createDataElement($dataElementXml);
+//
+//                $segment->addDataElement($dataElement);
+//            }
+//
+//            $segments[$segment->getId()] = $segment;
+//        }
+//
+//        return $segments;
+    }
+
+    public function loadSegments($mapping)
     {
         $segmentsXml = simplexml_load_file($mapping);
         $segments = array();

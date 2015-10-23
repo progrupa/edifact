@@ -16,7 +16,7 @@ class MappingLoaderTest extends \PHPUnit_Framework_TestCase
 
         $loader = new MappingLoader();
 
-        $result = $loader->load($file);
+        $result = $loader->loadSegments($file);
 
         $this->assertEquals(1, count($result));
         /** @var SegmentMapping $segment */

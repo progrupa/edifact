@@ -5,43 +5,30 @@ namespace EDI;
 use Doctrine\Common\Annotations\AnnotationReader;
 use EDI\Annotations\Mandatory;
 use EDI\Annotations\SegmentPiece;
+use EDI\Exception\MandatorySegmentPieceMissing;
 use EDI\Exception\MappingNotFoundException;
 use EDI\Mapping\MappingLoader;
 use EDI\Message\Interchange;
+use EDI\Populate\InterchangePopulator;
+use EDI\Populate\Populator;
 
 class Reader
 {
-    /** @var  AnnotationReader */
-    private $annotationReader;
     /** @var Parser EDI message parser */
     private $parser;
-    /** @var  array Segments defined in active mapping */
-    private $segments;
-    /** @var  array Data element fields descriptions */
-    private $codes;
+    /** @var  InterchangePopulator */
+    private $populator;
+    /** @var  MappingLoader */
+    private $mappingLoader;
+    /** @var  string */
+    private $mappingDirectory;
     /** @var array Errors found when reading EDIFACT message */
 	private $errors = array();
 
-	public function __construct(AnnotationReader $annotationReader, Parser $parser, MappingLoader $mappingLoader, $mappingDirectory)
+	public function __construct(Parser $parser, Populator $populator)
 	{
-        $this->annotationReader = $annotationReader;
         $this->parser = $parser;
-        $dir = realpath($mappingDirectory);
-        if (! file_exists($dir)) {
-            throw new MappingNotFoundException(sprintf("Mapping directory '%s' not found", $mappingDirectory));
-        }
-
-        $segmentsFile = $dir .'/segments.xml';
-        if (! file_exists($segmentsFile) || !is_readable($segmentsFile)) {
-            throw new MappingNotFoundException(sprintf("segments.xml mapping file not found in directory '%s'", $mappingDirectory));
-        }
-        $this->segments = $mappingLoader->load($segmentsFile);
-
-        $codesFile = $dir .'/codes.xml';
-        if (! file_exists($codesFile) || !is_readable($codesFile)) {
-            throw new MappingNotFoundException(sprintf("codes.xml mapping file not found in directory '%s'", $mappingDirectory));
-        }
-        $this->codes = $mappingLoader->loadCodes($codesFile);
+        $this->populator = $populator;
 	}
 
 	function errors()
@@ -294,40 +281,37 @@ class Reader
      */
     public function transform($message)
     {
-        $interchange = new Interchange();
-
         $transformed = $this->parser->parse($message);
 
-        $this->populateObject($interchange, $transformed);
+        $interchange = $this->populator->populate($transformed);
 
         return $interchange;
     }
 
-    private function populateObject($object, $data)
+    /**
+     * @param $version
+     * @return Populator
+     * @throws MappingNotFoundException
+     */
+    protected function updatePopulatorConfiguration($version)
     {
-        $segmentData = array_shift($data);
-        $classRefl = new \ReflectionClass($object);
-
-        foreach ($classRefl->getProperties() as $propRefl) {
-            $annotations = $this->annotationReader->getPropertyAnnotations($propRefl);
-            foreach ($annotations as $annotation) {
-                if ($annotation instanceof SegmentPiece) {
-                    $piece = $segmentData[$annotation->position];
-                    $propRefl->setAccessible(true);
-                    if ($annotation->parts) {
-                        $value = array();
-                        $i = 0;
-                        foreach ($annotation->parts as $part) {
-                            $value[$part] = isset($piece[$i]) ? $piece[$i] : null;
-                            ++$i;
-                        }
-                        $propRefl->setValue($object, $value);
-                    } else {
-                        $propRefl->setValue($object, $piece);
-                    }
-                }
-            }
+        $dir = realpath($this->mappingDirectory . "/$version");
+        if (!file_exists($dir)) {
+            throw new MappingNotFoundException(sprintf("Mapping directory '%s' not found", $this->mappingDirectory));
         }
-    }
 
+        $segmentsFile = $dir . '/segments.xml';
+        if (!file_exists($segmentsFile) || !is_readable($segmentsFile)) {
+            throw new MappingNotFoundException(sprintf("segments.xml mapping file not found in directory '%s'",
+                $this->mappingDirectory));
+        }
+        $this->populator->setSegments($this->mappingLoader->loadSegments($segmentsFile));
+
+        $codesFile = $dir . '/codes.xml';
+        if (!file_exists($codesFile) || !is_readable($codesFile)) {
+            throw new MappingNotFoundException(sprintf("codes.xml mapping file not found in directory '%s'",
+                $this->mappingDirectory));
+        }
+        $this->populator->setCodes($this->mappingLoader->loadCodes($codesFile));
+    }
 }

@@ -3,14 +3,16 @@
 namespace EDI\Message;
 
 
-use EDI\Annotations\Mandatory;
-use EDI\Annotations\SegmentPiece;
+use EDI\Annotations;
 
+/**
+ * @Annotations\Segment("UNB")
+ */
 class Interchange
 {
     /**
-     * @SegmentPiece(position="1", parts={"name", "version", "serviceCodeList", "encoding"})
-     * @Mandatory
+     * @Annotations\SegmentPiece(position="1", parts={"name":{"@mandatory"}, "version":{"@mandatory"}, "serviceCodeList", "encoding"})
+     * @Annotations\Mandatory
      */
     private $syntax;
     private $sender;
@@ -25,6 +27,8 @@ class Interchange
     private $testIndicator;
     /** @var  Message[] */
     private $messages;
+    /** @var  InterchangeTrailer */
+    private $trailer;
 
     /**
      * @return mixed
@@ -216,5 +220,21 @@ class Interchange
     public function setMessages($messages)
     {
         $this->messages = $messages;
+    }
+
+    /**
+     * @return InterchangeTrailer
+     */
+    public function getTrailer()
+    {
+        return $this->trailer;
+    }
+
+    /**
+     * @param InterchangeTrailer $trailer
+     */
+    public function setTrailer($trailer)
+    {
+        $this->trailer = $trailer;
     }
 }
