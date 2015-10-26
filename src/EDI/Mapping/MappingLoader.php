@@ -32,11 +32,13 @@ class MappingLoader
         /** @var \SimpleXMLElement $segmentXml */
         foreach ($segmentsXml->children() as $segmentXml) {
             $segment = new SegmentMapping((string) $segmentXml->attributes()->id);
+            $i = 1;
             /** @var \SimpleXMLElement $dataElementXml */
             foreach ($segmentXml->children() as $dataElementXml) {
                 $dataElement = $this->createDataElement($dataElementXml);
 
-                $segment->addDataElement($dataElement);
+                $segment->addDataElement($i, $dataElement);
+                $i++;
             }
 
             $segments[$segment->getId()] = $segment;

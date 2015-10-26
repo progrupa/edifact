@@ -87,9 +87,9 @@ class SegmentMapping
      * @param DataElementMapping $dataElement
      * @return $this
      */
-    public function addDataElement(DataElementMapping $dataElement)
+    public function addDataElement($position, DataElementMapping $dataElement)
     {
-        $this->dataElements[] = $dataElement;
+        $this->dataElements[intval($position)] = $dataElement;
         return $this;
     }
 }

@@ -25,11 +25,11 @@ class MappingLoaderTest extends \PHPUnit_Framework_TestCase
         //  Check data elements
         $dataElements = $segment->getDataElements();
         $this->assertEquals(2, count($dataElements));
-        $this->assertEquals('3164', $dataElements[0]->getId());
-        $this->assertEquals('C517', $dataElements[1]->getId());
+        $this->assertEquals('3164', $dataElements[1]->getId());
+        $this->assertEquals('C517', $dataElements[2]->getId());
         //  Check composite data elements
-        $this->assertInstanceOf(CompositeDataElementMapping::class, $dataElements[1]);
-        $compositeElements = $dataElements[1]->getDataElements();
+        $this->assertInstanceOf(CompositeDataElementMapping::class, $dataElements[2]);
+        $compositeElements = $dataElements[2]->getDataElements();
         $this->assertEquals('3225', $compositeElements[0]->getId());
         $this->assertEquals('1131', $compositeElements[1]->getId());
     }
