@@ -4,6 +4,7 @@ namespace EDI\Populate;
 
 
 use Doctrine\Common\Annotations\AnnotationReader;
+use EDI\Exception\MandatorySegmentPieceMissing;
 use EDI\Exception\UnknownSegmentException;
 use EDI\Mapping\DataElementMapping;
 use EDI\Mapping\DataElementType;
@@ -21,7 +22,12 @@ class SegmentPopulator extends Populator
         $this->segmentConfig = $segmentConfig;
     }
 
-
+    /**
+     * @param $data
+     * @return Segment
+     * @throws MandatorySegmentPieceMissing
+     * @throws UnknownSegmentException
+     */
     public function populate(&$data)
     {
         $segmentData = array_shift($data);
@@ -33,6 +39,7 @@ class SegmentPopulator extends Populator
         $config = $this->segmentConfig[$code];
         $segment = new Segment();
         $segment->setCode($code);
+        $segment->setRawData($segmentData);
 
         $values = $this->transformValues($config->getDataElements(), $segmentData);
 
@@ -55,10 +62,18 @@ class SegmentPopulator extends Populator
         $values = array();
         /** @var DataElementMapping $dataMapping */
         foreach ($dataElementsMapping as $i => $dataMapping) {
-            if ($dataMapping->getType() == DataElementType::COMPOSITE) {
-                $dataElementValue = $this->transformValues($dataMapping->getDataElements(), $segmentData[$i]);
+            if (! isset($segmentData[$i])) {
+                if ($dataMapping->isRequired()) {
+                    throw new MandatorySegmentPieceMissing(sprintf("Segment %s missing piece '%s'", $segmentData[0], $dataMapping->getName()));
+                } else {
+                    $dataElementValue = null;
+                }
             } else {
-                $dataElementValue = $segmentData[$i];
+                if ($dataMapping->getType() == DataElementType::COMPOSITE) {
+                    $dataElementValue = $this->transformValues($dataMapping->getDataElements(), $segmentData[$i]);
+                } else {
+                    $dataElementValue = $segmentData[$i];
+                }
             }
             $values[$dataMapping->getName()] = $dataElementValue;
         }

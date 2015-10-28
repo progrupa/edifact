@@ -10,70 +10,93 @@ use EDI\Annotations\SegmentPiece;
 use EDI\Exception\IncorrectSegmentId;
 use EDI\Exception\MandatorySegmentPieceMissing;
 use EDI\Mapping;
-use EDI\Mapping\CodeMapping;
-use EDI\Mapping\SegmentMapping;
+use EDI\Message\Segment as MessageSegment;
 
 abstract class Populator
 {
-
     /** @var  AnnotationReader */
     private $annotationReader;
-//    /** @var  SegmentMapping[] Segments defined in active mapping */
-//    private $segments;
-//    /** @var  CodeMapping[] Data element fields descriptions */
-//    private $codes;
 
     public function __construct(AnnotationReader $annotationReader)
     {
         $this->annotationReader = $annotationReader;
     }
 
-//    /**
-//     * @return Mapping\SegmentMapping[]
-//     */
-//    public function getSegments()
-//    {
-//        return $this->segments;
-//    }
-//
-//    /**
-//     * @param Mapping\SegmentMapping[] $segments
-//     */
-//    public function setSegments($segments)
-//    {
-//        $this->segments = $segments;
-//    }
-//
-//    /**
-//     * @return Mapping\CodeMapping[]
-//     */
-//    public function getCodes()
-//    {
-//        return $this->codes;
-//    }
-//
-//    /**
-//     * @param Mapping\CodeMapping[] $codes
-//     */
-//    public function setCodes($codes)
-//    {
-//        $this->codes = $codes;
-//    }
-
     abstract public function populate(&$data);
 
     protected function fillProperties($object, &$data)
     {
-        $segmentData = array_shift($data);
+        if ($data instanceof MessageSegment) {
+            $this->fromSegment($object, $data);
+        } else {
+            $segmentData = array_shift($data);
+            $classRefl = new \ReflectionClass($object);
+
+            //  Check if proper segment was received
+            $this->checkSegmentCode($classRefl, $segmentData[0]);
+
+            //  Populate SegmentPiece properties
+            $this->fillFromArray($object, $classRefl, $segmentData);
+
+            //  Check if mandatory fields have values
+            $this->checkMandatoryFields($object, $classRefl, $segmentData[0]);
+        }
+    }
+
+    protected function fromSegment($object, MessageSegment $segment)
+    {
         $classRefl = new \ReflectionClass($object);
 
         //  Check if proper segment was received
-        if ($segmentAnnotation = $this->annotationReader->getClassAnnotation($classRefl, Segment::class)) {
-            if ($segmentData[0] != $segmentAnnotation->value) {
-                throw new IncorrectSegmentId(sprintf("Expected %s segment, %s found", $segmentAnnotation->value, $segmentData[0]));
+        $this->checkSegmentCode($classRefl, $segment->getCode());
+
+        //  Populate SegmentPiece properties
+        $this->fillFromArray($object, $classRefl, array_values($segment->getRawData()));
+
+        //  Check if mandatory fields have values
+        $this->checkMandatoryFields($object, $classRefl, $segment->getCode());
+    }
+
+    /**
+     * @param $object
+     * @param $classRefl
+     * @param $segmentCode
+     * @throws MandatorySegmentPieceMissing
+     */
+    protected function checkMandatoryFields($object, \ReflectionClass $classRefl = null, $segmentCode)
+    {
+        foreach ($classRefl->getProperties() as $propRefl) {
+            $propRefl->setAccessible(true);
+            $isMandatory = $this->annotationReader->getPropertyAnnotation($propRefl, Mandatory::class);
+            if ($isMandatory && empty($propRefl->getValue($object))) {
+                throw new MandatorySegmentPieceMissing(sprintf("Segment %s missing mandatory property %s value",
+                    $segmentCode, $propRefl->getName()));
             }
         }
-        //  Populate SegmentPiece properties
+    }
+
+    /**
+     * @param \ReflectionClass $classRefl
+     * @param string $segmentCode
+     * @throws IncorrectSegmentId
+     */
+    protected function checkSegmentCode($classRefl, $segmentCode)
+    {
+        if ($segmentAnnotation = $this->annotationReader->getClassAnnotation($classRefl, Segment::class)) {
+            if ($segmentCode != $segmentAnnotation->value) {
+                throw new IncorrectSegmentId(sprintf("Expected %s segment, %s found", $segmentAnnotation->value, $segmentCode));
+            }
+        }
+    }
+
+    /**
+     * @param $object
+     * @param $classRefl
+     * @param $segmentData
+     * @throws MandatorySegmentPieceMissing
+     */
+    protected function fillFromArray($object, $classRefl, $segmentData)
+    {
         foreach ($classRefl->getProperties() as $propRefl) {
             $isSegmentPiece = $this->annotationReader->getPropertyAnnotation($propRefl, SegmentPiece::class);
             if ($isSegmentPiece) {
@@ -99,15 +122,6 @@ abstract class Populator
                 } else {
                     $propRefl->setValue($object, $piece);
                 }
-            }
-        }
-        //  Check if mandatory fields have values
-        foreach ($classRefl->getProperties() as $propRefl) {
-            $propRefl->setAccessible(true);
-            $isMandatory = $this->annotationReader->getPropertyAnnotation($propRefl, Mandatory::class);
-            if ($isMandatory && empty($propRefl->getValue($object))) {
-                throw new MandatorySegmentPieceMissing(sprintf("Segment %s missing mandatory property %s value",
-                    $segmentData[0], $propRefl->getName()));
             }
         }
     }

@@ -6,23 +6,12 @@ class MappingLoader
 {
     public function loadMessage($mapping)
     {
-        return new MessageMapping();
-//        $segmentsXml = simplexml_load_file($mapping);
-//        $segments = array();
-//        /** @var \SimpleXMLElement $segmentXml */
-//        foreach ($segmentsXml->children() as $segmentXml) {
-//            $segment = new SegmentMapping((string) $segmentXml->attributes()->id);
-//            /** @var \SimpleXMLElement $dataElementXml */
-//            foreach ($segmentXml->children() as $dataElementXml) {
-//                $dataElement = $this->createDataElement($dataElementXml);
-//
-//                $segment->addDataElement($dataElement);
-//            }
-//
-//            $segments[$segment->getId()] = $segment;
-//        }
-//
-//        return $segments;
+        $segmentsXml = simplexml_load_file($mapping);
+
+        $messageMapping = new MessageMapping();
+        $messageMapping->setSegments($this->createMessageSegments($segmentsXml->children(), $messageMapping));
+
+        return $messageMapping;
     }
 
     public function loadSegments($mapping)
@@ -45,6 +34,21 @@ class MappingLoader
         }
 
         return $segments;
+    }
+
+    public function loadCodes($file)
+    {
+        $elementsXml = simplexml_load_file($file);
+        $codes = array();
+        /** @var \SimpleXMLElement $codesXml */
+        foreach ($elementsXml->children() as $codesXml) {
+            $id = (string) $codesXml->attributes()->id;
+            foreach ($codesXml->children() as $codeXml) {
+                $codes[$id][] = new CodeMapping($codeXml->attributes()->id, $codeXml->attributes()->desc);
+            }
+        }
+
+        return $codes;
     }
 
     /**
@@ -71,18 +75,40 @@ class MappingLoader
         return $dataElement;
     }
 
-    public function loadCodes($file)
+    /**
+     * @param \SimpleXMLElement[] $segmentsXMLElements
+     * @param MessageMapping $messageMapping
+     * @return array
+     */
+    protected function createMessageSegments($segmentsXMLElements, $messageMapping)
     {
-        $elementsXml = simplexml_load_file($file);
-        $codes = array();
-        /** @var \SimpleXMLElement $codesXml */
-        foreach ($elementsXml->children() as $codesXml) {
-            $id = (string) $codesXml->attributes()->id;
-            foreach ($codesXml->children() as $codeXml) {
-                $codes[$id][] = new CodeMapping($codeXml->attributes()->id, $codeXml->attributes()->desc);
+        $segments = array();
+        foreach ($segmentsXMLElements as $segmentXml) {
+            if ($segmentXml->getName() == 'defaults') {
+                $defaults = array();
+                foreach ($segmentXml->children() as $default) {
+                    $defaults[(string)$default->attributes()->id] = (string)$default->attributes()->value;
+                }
+                $messageMapping->setDefaults($defaults);
+            } else {
+                if ($segmentXml->getName() == 'group') {
+                    $segment = new MessageSegmentGroupMapping(
+                        (string)$segmentXml->attributes()->id,
+                        (string)$segmentXml->attributes()->maxrepeat,
+                        is_null($segmentXml->attributes()->required) ? false : true
+                    );
+                    $segment->setSegmentMappings($this->createMessageSegments($segmentXml->children(), $messageMapping));
+                } else {
+                    $segment = new MessageSegmentMapping(
+                        (string)$segmentXml->attributes()->id,
+                        (string)$segmentXml->attributes()->maxrepeat,
+                        is_null($segmentXml->attributes()->required) ? false : true
+                    );
+                }
+                $segments[] = $segment;
             }
         }
 
-        return $codes;
+        return $segments;
     }
 }

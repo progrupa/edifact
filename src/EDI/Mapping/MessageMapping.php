@@ -6,9 +6,9 @@ namespace EDI\Mapping;
 class MessageMapping
 {
     /** @var  array */
-    private $defaults;
-    /** @var  array */
-    private $segments;
+    private $defaults = array();
+    /** @var  MessageSegmentMapping[] */
+    private $segments = array();
 
     /**
      * @return array
@@ -27,7 +27,7 @@ class MessageMapping
     }
 
     /**
-     * @return array
+     * @return MessageSegmentMapping[]
      */
     public function getSegments()
     {
@@ -35,7 +35,7 @@ class MessageMapping
     }
 
     /**
-     * @param array $segments
+     * @param MessageSegmentMapping[] $segments
      */
     public function setSegments($segments)
     {

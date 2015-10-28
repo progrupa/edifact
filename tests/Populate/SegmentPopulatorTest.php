@@ -44,4 +44,34 @@ class SegmentPopulatorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('whatever', $segment->comp['ajnc']);
         $this->assertEquals('content', $segment->comp['cfaj']);
     }
+
+    /**
+     * @test
+     * @expectedException \EDI\Exception\MandatorySegmentPieceMissing
+     */
+    public function should_check_required_fields()
+    {
+        $segmentMapping = new SegmentMapping('XXX');
+        $segmentMapping->addDataElement(1, new DataElementMapping(7583, /* required */true, DataElementType::ID, 'ajdi', '', 3));
+        $segmentMapping->addDataElement(2, new DataElementMapping(3415, /* required */true, DataElementType::A, 'field', '', 35));
+        $populator = new SegmentPopulator(['XXX' => $segmentMapping]);
+
+        $data = [['XXX', '345']];
+        $populator->populate($data);
+    }
+
+    /** @test */
+    public function should_ignore_missing_nonrequired_fields()
+    {
+        $segmentMapping = new SegmentMapping('XXX');
+        $segmentMapping->addDataElement(1, new DataElementMapping(7583, /* required */true, DataElementType::ID, 'ajdi', '', 3));
+        $segmentMapping->addDataElement(2, new DataElementMapping(3415, /* required */false, DataElementType::A, 'field', '', 35));
+        $populator = new SegmentPopulator(['XXX' => $segmentMapping]);
+
+        $data = [['XXX', '345']];
+        $segment = $populator->populate($data);
+
+        $this->assertEquals(345, $segment->ajdi);
+        $this->assertNull($segment->field);
+    }
 }

@@ -25,10 +25,10 @@ class Message
     private $subset;
     private $implementationGuideline;
     private $scenario;
-    /** @var  Segment[] */
-    private $segments;
     /** @var  MessageTrailer */
     private $trailer;
+
+    use SegmentContainer;
 
     /**
      * @return mixed
@@ -143,22 +143,6 @@ class Message
     }
 
     /**
-     * @return Segment[]
-     */
-    public function getSegments()
-    {
-        return $this->segments;
-    }
-
-    /**
-     * @param Segment[] $segments
-     */
-    public function setSegments($segments)
-    {
-        $this->segments = $segments;
-    }
-
-    /**
      * @return MessageTrailer
      */
     public function getTrailer()
@@ -172,5 +156,10 @@ class Message
     public function setTrailer($trailer)
     {
         $this->trailer = $trailer;
+    }
+
+    public function addSegments($segments)
+    {
+        $this->segments = array_merge($this->segments, $segments);
     }
 }

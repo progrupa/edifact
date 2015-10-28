@@ -5,6 +5,9 @@ namespace EDI\Tests\Mapping;
 use EDI\Mapping\CodeMapping;
 use EDI\Mapping\CompositeDataElementMapping;
 use EDI\Mapping\MappingLoader;
+use EDI\Mapping\MessageMapping;
+use EDI\Mapping\MessageSegmentGroupMapping;
+use EDI\Mapping\MessageSegmentMapping;
 use EDI\Mapping\SegmentMapping;
 
 class MappingLoaderTest extends \PHPUnit_Framework_TestCase
@@ -50,5 +53,40 @@ class MappingLoaderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('Certificate of conformity', $result['1001'][1]->getDesc());
         $this->assertEquals('3', $result['1001'][2]->getId());
         $this->assertEquals('Certificate of quality', $result['1001'][2]->getDesc());
+    }
+
+    /** @test */
+    public function should_load_messages_from_file()
+    {
+        $file = realpath(__DIR__.'/../fixtures/message.xml');
+
+        $loader = new MappingLoader();
+
+        $result = $loader->loadMessage($file);
+
+        $this->assertInstanceOf(MessageMapping::class, $result);
+
+        $defaults = $result->getDefaults();
+        $this->assertEquals('INVOIC', $defaults['0065']);
+        $this->assertEquals('D', $defaults['0052']);
+        $this->assertEquals('96A', $defaults['0054']);
+        $this->assertEquals('UN', $defaults['0051']);
+
+        $segments = $result->getSegments();
+        $this->assertInstanceOf(MessageSegmentMapping::class, $segments[0]);
+        $this->assertEquals('UNH', $segments[0]->getCode());
+        $this->assertEquals(1, $segments[0]->getMaxRepeat());
+        $this->assertEquals(true, $segments[0]->isRequired());
+
+        $this->assertInstanceOf(MessageSegmentGroupMapping::class, $segments[7]);
+        $this->assertEquals('SG1', $segments[7]->getCode());
+        $this->assertEquals(99, $segments[7]->getMaxRepeat());
+        $this->assertEquals(false, $segments[7]->isRequired());
+
+        $groupSegments = $segments[7]->getSegmentMappings();
+        $this->assertInstanceOf(MessageSegmentMapping::class, $groupSegments[0]);
+        $this->assertEquals('RFF', $groupSegments[0]->getCode());
+        $this->assertEquals(1, $groupSegments[0]->getMaxRepeat());
+        $this->assertEquals(true, $groupSegments[0]->isRequired());
     }
 }
