@@ -41,4 +41,12 @@ class MessageMapping
     {
         $this->segments = $segments;
     }
+
+    /**
+     * @param MessageSegmentMapping $segment
+     */
+    public function addSegment(MessageSegmentMapping $segment)
+    {
+        $this->segments[] = $segment;
+    }
 }
