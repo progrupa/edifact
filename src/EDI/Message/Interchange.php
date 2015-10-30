@@ -15,16 +15,50 @@ class Interchange
      * @Annotations\Mandatory
      */
     private $syntax;
+    /**
+     * @Annotations\SegmentPiece(position="2", parts={"id":{"@mandatory"}, "codeQualifier", "internalId", "internalSubId"})
+     * @Annotations\Mandatory()
+     */
     private $sender;
+    /**
+     * @Annotations\SegmentPiece(position="3", parts={"id":{"@mandatory"}, "codeQualifier", "internalId", "internalSubId"})
+     * @Annotations\Mandatory()
+     */
     private $recipient;
+    /**
+     * @Annotations\SegmentPiece(position="4", parts={"date":{"@mandatory"}, "time":{"@mandatory"}})
+     * @Annotations\Mandatory()
+     */
     private $time;
+    /**
+     * @Annotations\SegmentPiece(position="5")
+     */
     private $controlReference;
+    /**
+     * @Annotations\SegmentPiece(position="6", parts={"password":{"@mandatory"}, "passwordQualifier"})
+     */
     private $recipientsReference;
+    /**
+     * @Annotations\SegmentPiece(position="7")
+     */
     private $applicationReference;
+    /**
+     * @Annotations\SegmentPiece(position="8")
+     */
     private $processingPriorityCode;
+    /**
+     * @Annotations\SegmentPiece(position="9")
+     */
     private $acknowledgementRequest;
+    /**
+     * @Annotations\SegmentPiece(position="10")
+     */
     private $agreementIdentifier;
+    /**
+     * @Annotations\SegmentPiece(position="11")
+     */
     private $testIndicator;
+
     /** @var  Message[] */
     private $messages;
     /** @var  InterchangeTrailer */
@@ -236,5 +270,17 @@ class Interchange
     public function setTrailer($trailer)
     {
         $this->trailer = $trailer;
+    }
+
+    /**
+     * @return InterchangeTrailer
+     */
+    public function createTrailer()
+    {
+        $trailer = new InterchangeTrailer();
+        $trailer->setControlReference($this->controlReference);
+        $trailer->setControlCount(count($this->messages));
+
+        return $trailer;
     }
 }

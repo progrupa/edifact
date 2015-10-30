@@ -68,4 +68,9 @@ class Segment
     {
         $this->rawData = $rawData;
     }
+
+    public function count()
+    {
+        return 1;
+    }
 }

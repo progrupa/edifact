@@ -68,7 +68,7 @@ abstract class Populator
         foreach ($classRefl->getProperties() as $propRefl) {
             $propRefl->setAccessible(true);
             $isMandatory = $this->annotationReader->getPropertyAnnotation($propRefl, Mandatory::class);
-            if ($isMandatory && empty($propRefl->getValue($object))) {
+            if ($isMandatory && $this->isEmpty($propRefl->getValue($object))) {
                 throw new MandatorySegmentPieceMissing(sprintf("Segment %s missing mandatory property %s value",
                     $segmentCode, $propRefl->getName()));
             }
@@ -108,7 +108,7 @@ abstract class Populator
                     foreach ($isSegmentPiece->parts as $k => $part) {
                         if (!is_numeric($k) && is_array($part)) {
                             $partName = $k;
-                            if (in_array("@mandatory", $part) && empty($piece[$i])) {
+                            if (!empty($piece) && in_array("@mandatory", $part) && $this->isEmpty($piece[$i])) {
                                 throw new MandatorySegmentPieceMissing(sprintf("Segment %s part %s missing value at offset %d",
                                     $segmentData[0], $partName, $i));
                             }
@@ -124,5 +124,13 @@ abstract class Populator
                 }
             }
         }
+    }
+
+    private function isEmpty($i)
+    {
+        if (is_array($i)) {
+            return empty(array_filter($i, function($a) {return !is_null($a);}));
+        }
+        return empty($i);
     }
 }

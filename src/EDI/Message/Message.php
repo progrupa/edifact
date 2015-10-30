@@ -150,6 +150,15 @@ class Message
         return $this->trailer;
     }
 
+    public function createTrailer()
+    {
+        $trailer = new MessageTrailer();
+        $trailer->setReferenceNumber($this->referenceNumber);
+        $trailer->setSegmentCount($this->countSegments());
+
+        return $trailer;
+    }
+
     /**
      * @param MessageTrailer $trailer
      */
@@ -161,5 +170,15 @@ class Message
     public function addSegments($segments)
     {
         $this->segments = array_merge($this->segments, $segments);
+    }
+
+    private function countSegments()
+    {
+        $total = 0;
+        foreach ($this->getSegments() as $seg) {
+            $total += $seg->count();
+        }
+
+        return $total;
     }
 }
