@@ -3,7 +3,7 @@
 namespace EDI\Populate;
 
 
-use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\Reader;
 use EDI\Annotations\Mandatory;
 use EDI\Annotations\Segment;
 use EDI\Annotations\SegmentPiece;
@@ -14,10 +14,10 @@ use EDI\Message\Segment as MessageSegment;
 
 abstract class Populator
 {
-    /** @var  AnnotationReader */
+    /** @var  Reader */
     private $annotationReader;
 
-    public function __construct(AnnotationReader $annotationReader)
+    public function __construct(Reader $annotationReader)
     {
         $this->annotationReader = $annotationReader;
     }

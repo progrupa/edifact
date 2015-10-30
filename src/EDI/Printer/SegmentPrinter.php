@@ -13,7 +13,18 @@ class SegmentPrinter extends Printer
     /** @var  SegmentMapping[] */
     private $segmentMappings;
 
-    public function __construct($segmentMappings)
+    /**
+     * @return \EDI\Mapping\SegmentMapping[]
+     */
+    public function getSegmentMappings()
+    {
+        return $this->segmentMappings;
+    }
+
+    /**
+     * @param \EDI\Mapping\SegmentMapping[] $segmentMappings
+     */
+    public function setSegmentMappings($segmentMappings)
     {
         $this->segmentMappings = $segmentMappings;
     }

@@ -87,7 +87,8 @@ class SegmentPrinterTest extends \PHPUnit_Framework_TestCase
         $segmentYMapping = new SegmentMapping('YYY');
         $segmentYMapping->addDataElement(1, new DataElementMapping(5434, true, DataElementType::ID, 'ajdi'));
 
-        $printer = new SegmentPrinter([
+        $printer = new SegmentPrinter();
+        $printer->setSegmentMappings([
             'XXX' => $segmentMapping,
             'YYY' => $segmentYMapping,
         ]);

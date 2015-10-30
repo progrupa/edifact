@@ -4,19 +4,26 @@ namespace EDI\Mapping;
 
 class MappingLoader
 {
-    public function loadMessage($mapping)
+    private $dir;
+
+    public function __construct($dir)
     {
-        $segmentsXml = simplexml_load_file($mapping);
+        $this->dir = $dir;
+    }
+
+    public function loadMessage($version, $release, $message)
+    {
+        $messageXml = simplexml_load_file(sprintf('%s/%s%s/messages/%s.xml', $this->dir, strtoupper($version), strtoupper($release), strtolower($message)));
 
         $messageMapping = new MessageMapping();
-        $messageMapping->setSegments($this->createMessageSegments($segmentsXml->children(), $messageMapping));
+        $messageMapping->setSegments($this->createMessageSegments($messageXml->children(), $messageMapping));
 
         return $messageMapping;
     }
 
-    public function loadSegments($mapping)
+    public function loadSegments($version, $release)
     {
-        $segmentsXml = simplexml_load_file($mapping);
+        $segmentsXml = simplexml_load_file(sprintf('%s/%s%s/segments.xml', $this->dir, strtoupper($version), strtoupper($release)));
         $segments = array();
         /** @var \SimpleXMLElement $segmentXml */
         foreach ($segmentsXml->children() as $segmentXml) {
@@ -36,9 +43,9 @@ class MappingLoader
         return $segments;
     }
 
-    public function loadCodes($file)
+    public function loadCodes($version, $release)
     {
-        $elementsXml = simplexml_load_file($file);
+        $elementsXml = simplexml_load_file(sprintf('%s/%s%s/codes.xml', $this->dir, strtoupper($version), strtoupper($release)));
         $codes = array();
         /** @var \SimpleXMLElement $codesXml */
         foreach ($elementsXml->children() as $codesXml) {

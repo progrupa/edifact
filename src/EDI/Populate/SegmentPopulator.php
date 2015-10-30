@@ -14,11 +14,26 @@ use EDI\Message\Segment;
 class SegmentPopulator extends Populator
 {
     /** @var SegmentMapping[] */
-    private $segmentConfig;
+    private $segmentConfig = [];
 
-    public function __construct($segmentConfig)
+    public function __construct()
     {
         parent::__construct(new AnnotationReader());
+    }
+
+    /**
+     * @return \EDI\Mapping\SegmentMapping[]
+     */
+    public function getSegmentConfig()
+    {
+        return $this->segmentConfig;
+    }
+
+    /**
+     * @param \EDI\Mapping\SegmentMapping[] $segmentConfig
+     */
+    public function setSegmentConfig($segmentConfig)
+    {
         $this->segmentConfig = $segmentConfig;
     }
 

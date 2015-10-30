@@ -6,6 +6,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use EDI\Encoder;
 use EDI\Mapping\DataElementMapping;
 use EDI\Mapping\DataElementType;
+use EDI\Mapping\MappingLoader;
 use EDI\Mapping\MessageMapping;
 use EDI\Mapping\MessageSegmentMapping;
 use EDI\Mapping\SegmentMapping;
@@ -43,10 +44,10 @@ class EncoderTest extends \PHPUnit_Framework_TestCase
         $interchange->setControlReference('17');
         $interchange->setMessages([$message]);
 
-        $encoder = new Encoder(
-            new AnnotationPrinter(new AnnotationReader()),
-            new SegmentPrinter(['XXX' => $segmentMapping])
-            );
+        $mappingLoader = \Phake::mock(MappingLoader::class);
+        \Phake::when($mappingLoader)->loadSegments(\Phake::anyParameters())->thenReturn(['XXX' => $segmentMapping]);
+
+        $encoder = new Encoder(new AnnotationPrinter(new AnnotationReader()), new SegmentPrinter(), $mappingLoader);
 
         $result = $encoder->encode($interchange);
 

@@ -9,7 +9,7 @@
 namespace EDI\Populate;
 
 
-use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\Reader;
 use EDI\Exception\IncorrectSegmentId;
 use EDI\Mapping\MappingLoader;
 use EDI\Mapping\MessageSegmentMapping;
@@ -23,15 +23,12 @@ class MessagePopulator extends Populator
     private $segmentPopulator;
     /** @var  MappingLoader */
     private $mappingLoader;
-    /** @var  string */
-    private $mappingDirectory;
 
-    public function __construct(AnnotationReader $annotationReader, SegmentPopulator $segmentPopulator, MappingLoader $mappingLoader, $mappingDir)
+    public function __construct(Reader $annotationReader, SegmentPopulator $segmentPopulator, MappingLoader $mappingLoader)
     {
         parent::__construct($annotationReader);
         $this->segmentPopulator = $segmentPopulator;
         $this->mappingLoader = $mappingLoader;
-        $this->mappingDirectory = $mappingDir;
     }
 
     /**
@@ -45,15 +42,8 @@ class MessagePopulator extends Populator
         $this->fillProperties($message, $data);
 
         $identifier = $message->getIdentifier();
-        $mapping = $this->mappingLoader->loadMessage(
-            $this->mappingDirectory.
-            sprintf(
-                '/%s%s/messages/%s.xml',
-                strtoupper($identifier['version']),
-                strtoupper($identifier['release']),
-                strtolower($identifier['type'])
-            )
-        );
+        $mapping = $this->mappingLoader->loadMessage($identifier['version'], $identifier['release'], $identifier['type']);
+        $this->segmentPopulator->setSegmentConfig($this->mappingLoader->loadSegments($identifier['version'], $identifier['release']));
 
         $expectedSegments = $mapping->getSegments();
         $segment = $this->getNextSegment($data);

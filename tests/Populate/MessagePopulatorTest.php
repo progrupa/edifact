@@ -24,13 +24,13 @@ class MessagePopulatorTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function should_load_proper_segment_config()
     {
-        /** @var MappingLoader $loader */
-        $loader = \Phake::partialMock(MappingLoader::class);
         $mappingDir = realpath(__DIR__ . '/../../src/EDI/Mapping');
+        /** @var MappingLoader $loader */
+        $loader = \Phake::partialMock(MappingLoader::class, $mappingDir);
 
         $segmentPopulator = $this->givenSegmentPopulator();
 
-        $populator = $this->givenPopulator($segmentPopulator, $loader, $mappingDir);
+        $populator = $this->givenPopulator($segmentPopulator, $loader);
 
         $fixtureDir = realpath(__DIR__ . '/../fixtures');
         $parser = new Parser();
@@ -38,18 +38,17 @@ class MessagePopulatorTest extends \PHPUnit_Framework_TestCase
         $data = $parser->parse($fixtureDir . '/invoic_message_standalone.edi');
         $populator->populate($data);
 
-        \Phake::verify($loader)->loadMessage($mappingDir.'/D96A/messages/invoic.xml');
+        \Phake::verify($loader)->loadMessage('D', '96A', 'INVOIC');
     }
 
     /** @test */
     public function should_use_segment_populator_for_content()
     {
-        $loader = new MappingLoader();
-        $mappingDir = realpath(__DIR__ . '/../../src/EDI/Mapping');
+        $loader = new MappingLoader(realpath(__DIR__ . '/../../src/EDI/Mapping'));
 
         $segmentPopulator = $this->givenSegmentPopulator();
 
-        $populator = $this->givenPopulator($segmentPopulator, $loader, $mappingDir);
+        $populator = $this->givenPopulator($segmentPopulator, $loader);
 
         $fixtureDir = realpath(__DIR__ . '/../fixtures');
         $parser = new Parser();
@@ -63,12 +62,11 @@ class MessagePopulatorTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function should_use_config_to_populate_segments()
     {
-        $loader = new MappingLoader();
-        $mappingDir = realpath(__DIR__ . '/../../src/EDI/Mapping');
+        $loader = new MappingLoader(realpath(__DIR__ . '/../../src/EDI/Mapping'));
 
         $segmentPopulator = $this->givenSegmentPopulator();
 
-        $populator = $this->givenPopulator($segmentPopulator, $loader, $mappingDir);
+        $populator = $this->givenPopulator($segmentPopulator, $loader);
 
         $fixtureDir = realpath(__DIR__ . '/../fixtures');
         $parser = new Parser();
@@ -104,9 +102,9 @@ class MessagePopulatorTest extends \PHPUnit_Framework_TestCase
      * @param $mappingDir
      * @return MessagePopulator
      */
-    private function givenPopulator(SegmentPopulator $segmentPopulator, $loader, $mappingDir)
+    private function givenPopulator(SegmentPopulator $segmentPopulator, $loader)
     {
-        $populator = new MessagePopulator(new AnnotationReader(), $segmentPopulator, $loader, $mappingDir);
+        $populator = new MessagePopulator(new AnnotationReader(), $segmentPopulator, $loader);
 
         return $populator;
     }

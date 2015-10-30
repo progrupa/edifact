@@ -13,13 +13,11 @@ use EDI\Mapping\SegmentMapping;
 class MappingLoaderTest extends \PHPUnit_Framework_TestCase
 {
     /** @test */
-    public function should_load_mapping_from_file()
+    public function should_load_segment_mapping_from_file()
     {
-        $file = realpath(__DIR__.'/../fixtures/segments.xml');
+        $loader = new MappingLoader(__DIR__.'/../fixtures');
 
-        $loader = new MappingLoader();
-
-        $result = $loader->loadSegments($file);
+        $result = $loader->loadSegments('D', '96A');
 
         $this->assertEquals(1, count($result));
         /** @var SegmentMapping $segment */
@@ -40,11 +38,9 @@ class MappingLoaderTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function should_load_codes_from_file()
     {
-        $file = realpath(__DIR__.'/../fixtures/codes.xml');
+        $loader = new MappingLoader(__DIR__.'/../fixtures');
 
-        $loader = new MappingLoader();
-
-        $result = $loader->loadCodes($file);
+        $result = $loader->loadCodes('D', '96A');
 
         $this->assertEquals(1, count($result));
         $this->assertEquals('1', $result['1001'][0]->getId());
@@ -58,11 +54,9 @@ class MappingLoaderTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function should_load_messages_from_file()
     {
-        $file = realpath(__DIR__.'/../fixtures/message.xml');
+        $loader = new MappingLoader(__DIR__.'/../fixtures');
 
-        $loader = new MappingLoader();
-
-        $result = $loader->loadMessage($file);
+        $result = $loader->loadMessage('D', '96A', 'MESSAGE');
 
         $this->assertInstanceOf(MessageMapping::class, $result);
 

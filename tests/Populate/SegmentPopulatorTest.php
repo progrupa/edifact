@@ -17,7 +17,7 @@ class SegmentPopulatorTest extends \PHPUnit_Framework_TestCase
      */
     public function should_throw_exception_if_unknown_segment()
     {
-        $populator = new SegmentPopulator([]);
+        $populator = new SegmentPopulator();
 
         $data = [['XXX', '345', 'some data', ['whatever', 'content']]];
         $populator->populate($data);
@@ -34,7 +34,8 @@ class SegmentPopulatorTest extends \PHPUnit_Framework_TestCase
         $compDataElement->addDataElement(new DataElementMapping(1111, /* required */false, DataElementType::A, 'ajnc'));
         $compDataElement->addDataElement(new DataElementMapping(2222, /* required */false, DataElementType::A, 'cfaj'));
         $segmentMapping->addDataElement(3, $compDataElement);
-        $populator = new SegmentPopulator(['XXX' => $segmentMapping]);
+        $populator = new SegmentPopulator();
+        $populator->setSegmentConfig(['XXX' => $segmentMapping]);
 
         $data = [['XXX', '345', 'some data', ['whatever', 'content']]];
         $segment = $populator->populate($data);
@@ -54,7 +55,8 @@ class SegmentPopulatorTest extends \PHPUnit_Framework_TestCase
         $segmentMapping = new SegmentMapping('XXX');
         $segmentMapping->addDataElement(1, new DataElementMapping(7583, /* required */true, DataElementType::ID, 'ajdi', '', 3));
         $segmentMapping->addDataElement(2, new DataElementMapping(3415, /* required */true, DataElementType::A, 'field', '', 35));
-        $populator = new SegmentPopulator(['XXX' => $segmentMapping]);
+        $populator = new SegmentPopulator();
+        $populator->setSegmentConfig(['XXX' => $segmentMapping]);
 
         $data = [['XXX', '345']];
         $populator->populate($data);
@@ -66,7 +68,8 @@ class SegmentPopulatorTest extends \PHPUnit_Framework_TestCase
         $segmentMapping = new SegmentMapping('XXX');
         $segmentMapping->addDataElement(1, new DataElementMapping(7583, /* required */true, DataElementType::ID, 'ajdi', '', 3));
         $segmentMapping->addDataElement(2, new DataElementMapping(3415, /* required */false, DataElementType::A, 'field', '', 35));
-        $populator = new SegmentPopulator(['XXX' => $segmentMapping]);
+        $populator = new SegmentPopulator();
+        $populator->setSegmentConfig(['XXX' => $segmentMapping]);
 
         $data = [['XXX', '345']];
         $segment = $populator->populate($data);
