@@ -35,7 +35,7 @@ class Segment
 
     public function get($name)
     {
-        return $this->data[$name];
+        return array_key_exists($name, $this->data) ? $this->data[$name] : null;
     }
 
     public function set($name, $value)
@@ -45,7 +45,7 @@ class Segment
 
     public function __get($name)
     {
-        return $this->data[$name];
+        return array_key_exists($name, $this->data) ? $this->data[$name] : null;
     }
 
     public function __set($name, $value)

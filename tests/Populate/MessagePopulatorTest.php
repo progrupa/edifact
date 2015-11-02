@@ -56,7 +56,7 @@ class MessagePopulatorTest extends \PHPUnit_Framework_TestCase
         $data = $parser->parse($fixtureDir . '/invoic_message_standalone.edi');
         $populator->populate($data);
 
-        \Phake::verify($segmentPopulator, \Phake::times(35))->populate(\Phake::anyParameters());
+        \Phake::verify($segmentPopulator, \Phake::times(37))->populate(\Phake::anyParameters());
     }
 
     /** @test */
@@ -95,6 +95,24 @@ class MessagePopulatorTest extends \PHPUnit_Framework_TestCase
         $moa = $moas[0];
         $this->assertInstanceOf(Segment::class, $moa);
         $this->assertEquals('MOA', $moa->getCode());
+    }
+
+    /** @test */
+    public function should_handle_multiple_messages()
+    {
+        $loader = new MappingLoader(realpath(__DIR__ . '/../../src/EDI/Mapping'));
+
+        $segmentPopulator = $this->givenSegmentPopulator();
+
+        $populator = $this->givenPopulator($segmentPopulator, $loader);
+
+        $fixtureDir = realpath(__DIR__ . '/../fixtures');
+        $parser = new Parser();
+
+        $data = $parser->parse($fixtureDir . '/invoic_three_messages.edi');
+        $messages = $populator->populate($data);
+
+        $this->assertCount(3, $messages);
     }
 
     /**

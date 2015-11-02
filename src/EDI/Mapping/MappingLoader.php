@@ -28,6 +28,8 @@ class MappingLoader
         /** @var \SimpleXMLElement $segmentXml */
         foreach ($segmentsXml->children() as $segmentXml) {
             $segment = new SegmentMapping((string) $segmentXml->attributes()->id);
+            $segment->setName((string) $segmentXml->attributes()->name);
+            $segment->setDesc((string) $segmentXml->attributes()->desc);
             $i = 1;
             /** @var \SimpleXMLElement $dataElementXml */
             foreach ($segmentXml->children() as $dataElementXml) {
@@ -78,6 +80,10 @@ class MappingLoader
                 $dataElementXml->attributes()->required
             );
         }
+        $dataElement->setName((string) $dataElementXml->attributes()->name);
+        $dataElement->setDesc((string) $dataElementXml->attributes()->desc);
+        $dataElement->setType((string) $dataElementXml->attributes()->type);
+        $dataElement->setMaxLength((int) $dataElementXml->attributes()->maxlength);
 
         return $dataElement;
     }

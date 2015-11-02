@@ -23,11 +23,17 @@ class MappingLoaderTest extends \PHPUnit_Framework_TestCase
         /** @var SegmentMapping $segment */
         $segment = $result['ADR'];
         $this->assertEquals('ADR', $segment->getId());
+        $this->assertEquals('address', $segment->getName());
+        $this->assertEquals('To specify an address.', $segment->getDesc());
         //  Check data elements
         $dataElements = $segment->getDataElements();
         $this->assertEquals(2, count($dataElements));
         $this->assertEquals('3164', $dataElements[1]->getId());
+        $this->assertEquals('cityName', $dataElements[1]->getName());
+        $this->assertEquals('35', $dataElements[1]->getMaxLength());
+        $this->assertEquals('an', $dataElements[1]->getType());
         $this->assertEquals('C517', $dataElements[2]->getId());
+        $this->assertEquals('locationIdentification', $dataElements[2]->getName());
         //  Check composite data elements
         $this->assertInstanceOf(CompositeDataElementMapping::class, $dataElements[2]);
         $compositeElements = $dataElements[2]->getDataElements();

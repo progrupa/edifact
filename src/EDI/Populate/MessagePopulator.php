@@ -38,43 +38,53 @@ class MessagePopulator extends Populator
      */
     public function populate(&$data)
     {
-        $message = new Message();
-        $this->fillProperties($message, $data);
-
-        $identifier = $message->getIdentifier();
-        $mapping = $this->mappingLoader->loadMessage($identifier['version'], $identifier['release'], $identifier['type']);
-        $this->segmentPopulator->setSegmentConfig($this->mappingLoader->loadSegments($identifier['version'], $identifier['release']));
-
-        $expectedSegments = $mapping->getSegments();
+        $messages = [];
+        $remainingData = null;
         $segment = $this->getNextSegment($data);
-        $this->nextExpectedSegment($expectedSegments);  //  Ignore the header, already processed when creating Message
-        $expected = $this->nextExpectedSegment($expectedSegments);
 
-        while ('UNT' != $segment->getCode()) {
-            /** @var MessageSegmentMapping $expected */
-            if (! $expected) {
-                print "Run out of expectations\n";
-                break;
-            }
-//            print sprintf("Expected %s, processing %s\n", $expected->getCode(), $segment->getCode());
-            if ($expected->acceptSegment($segment)) {
-//                print "Segment added!\n";
-//                $message->addSegment($segment);
-                $segment = $this->getNextSegment($data);
-            } else {
-                if ($expected->isRequired()) {
-//                    throw new IncorrectSegmentId(sprintf('Expected segment %s, got %s instead', $expected->getCode(), $segment->getCode()));
+        while ($segment && $segment->getCode() == 'UNH') {
+            $message = new Message();
+            $this->fillProperties($message, $segment);
+
+            $identifier = $message->getIdentifier();
+            $mapping = $this->mappingLoader->loadMessage($identifier['version'], $identifier['release'],
+                $identifier['type']);
+            $this->segmentPopulator->setSegmentConfig($this->mappingLoader->loadSegments($identifier['version'],
+                $identifier['release']));
+
+            $expectedSegments = $mapping->getSegments();
+            $segment = $this->getNextSegment($data);
+            $this->nextExpectedSegment($expectedSegments);  //  Ignore the header, already processed when creating Message
+            $expected = $this->nextExpectedSegment($expectedSegments);
+
+            while ('UNT' != $segment->getCode()) {
+                /** @var MessageSegmentMapping $expected */
+                if (!$expected) {
+                    break;
                 }
-                $message->addSegments($expected->getSegments());
-                $expected = $this->nextExpectedSegment($expectedSegments);
+
+                if ($expected->acceptSegment($segment)) {
+                    $segment = $this->getNextSegment($data);
+                } else {
+                    $message->addSegments($expected->getSegments());
+                    $expected = $this->nextExpectedSegment($expectedSegments);
+                }
             }
+
+            $trailer = new MessageTrailer();
+            $this->fillProperties($trailer, $segment);
+            $message->setTrailer($trailer);
+
+            $messages[] = $message;
+
+            $remainingData = reset($data);
+            $segment = $this->getNextSegment($data);
         }
 
-        $trailer = new MessageTrailer();
-        $this->fillProperties($trailer, $segment);
-        $message->setTrailer($trailer);
-
-        return array($message);
+        if ($remainingData) {
+            array_unshift($data, $remainingData);
+        }
+        return $messages;
     }
 
     /**
@@ -92,10 +102,5 @@ class MessagePopulator extends Populator
     protected function nextExpectedSegment(&$expectedSegments)
     {
         return array_shift($expectedSegments);
-    }
-
-    private function isExpectedSegment(MessageSegmentMapping $expected, Segment $segment)
-    {
-        return $expected->expectedCode() == $segment->getCode();
     }
 }

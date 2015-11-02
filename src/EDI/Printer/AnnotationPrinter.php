@@ -4,6 +4,7 @@ namespace EDI\Printer;
 
 
 use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\Reader;
 use EDI\Annotations\Segment;
 use EDI\Annotations\SegmentPiece;
 use EDI\Exception\AnnotationMissing;
@@ -13,7 +14,7 @@ class AnnotationPrinter extends Printer
     /** @var  AnnotationReader */
     private $annotationReader;
 
-    public function __construct(AnnotationReader $annotationReader)
+    public function __construct(Reader $annotationReader)
     {
         $this->annotationReader = $annotationReader;
     }
