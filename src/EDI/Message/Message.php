@@ -31,6 +31,21 @@ class Message
     use SegmentContainer;
 
     /**
+     * @param string $code Message name
+     * @param string $version Message version
+     * @param string $release Message release
+     * @param string $agency Message controlling agency - default 'UN'
+     * @return Message
+     */
+    public static function create($code, $version, $release, $agency = 'UN')
+    {
+        $message = new Message();
+        $message->setIdentifier(["type" => strtoupper($code), "version" => strtoupper($version), "release" => strtoupper($release), "controllingAgency" => $agency]);
+        $message->setReferenceNumber(rand());
+
+        return $message;
+    }
+    /**
      * @return mixed
      */
     public function getReferenceNumber()

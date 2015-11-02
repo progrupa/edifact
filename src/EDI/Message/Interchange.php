@@ -64,6 +64,17 @@ class Interchange
     /** @var  InterchangeTrailer */
     private $trailer;
 
+    public static function create($senderId, $senderIdCode, $recipient = 'anonymous', $recipientCode = null, $syntax = 'UNOC', $syntaxVersion = 3)
+    {
+        $interchange = new Interchange();
+        $interchange->setSyntax(["name" => $syntax, "version" => $syntaxVersion]);
+        $interchange->setSender(['id' => $senderId, 'codeQualifier' => $senderIdCode]);
+        $interchange->setRecipient(['id' => $recipient, 'codeQualifier' => $recipientCode]);
+        $interchange->setTime(['date' => date('Ymd'), 'time' => date('Hi')]);
+        $interchange->setControlReference(rand());
+
+        return $interchange;
+    }
     /**
      * @return mixed
      */
