@@ -59,8 +59,8 @@ class SegmentPrinter extends Printer
             if ($dataElement instanceof CompositeDataElementMapping) {
                 $actualValues = $object->get($dataElement->getName());
                 $values = [];
-                foreach ($dataElement->getDataElements() as $childElement) {
-                    $values[] = isset($actualValues[$childElement->getName()]) ? $actualValues[$childElement->getName()] : null;
+                foreach ($dataElement->getDataElements() as $i => $childElement) {
+                    $values[] = isset($actualValues[$childElement->getName()]) ? $actualValues[$childElement->getName()] : (isset($actualValues[$i]) ? $actualValues[$i] : null);
                 }
                 $properties[] = $this->weedOutEmpty($values);
             } else {

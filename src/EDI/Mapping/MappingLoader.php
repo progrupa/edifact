@@ -41,6 +41,8 @@ class MappingLoader
 
             $segments[$segment->getId()] = $segment;
         }
+        $segments['UNS'] = new SegmentMapping('UNS');
+        $segments['UNS']->addDataElement(1, new DataElementMapping('0081', true, DataElementType::A, 'id', null, 1));
 
         return $segments;
     }

@@ -70,6 +70,26 @@ class SegmentPrinterTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals("YYY+000'XXX+111+222+333:444'", $printer->prepareString($grp));
     }
 
+    /** @test */
+    public function should_allow_numeric_indices_in_groups()
+    {
+        $printer = $this->givenPrinter();
+
+        $segmentY = new Segment('YYY');
+        $segmentY->ajdi = '000';
+
+        $segment = new Segment('XXX');
+        $segment->ajdi = 111;
+        $segment->fild = 222;
+        $segment->araj = [0 => 333, 1 => 444];
+
+        $grp = new SegmentGroup();
+        $grp->addSegment($segmentY);
+        $grp->addSegment($segment);
+
+        $this->assertEquals("YYY+000'XXX+111+222+333:444'", $printer->prepareString($grp));
+    }
+
     /**
      * @return SegmentPrinter
      */
