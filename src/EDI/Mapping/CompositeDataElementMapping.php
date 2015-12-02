@@ -33,4 +33,11 @@ class CompositeDataElementMapping extends DataElementMapping
         $this->dataElements[] = $dataElement;
         return $this;
     }
+
+    public function getType()
+    {
+        return DataElementType::COMPOSITE;
+    }
+
+
 }

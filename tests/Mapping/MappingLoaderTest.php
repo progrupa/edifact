@@ -19,7 +19,7 @@ class MappingLoaderTest extends \PHPUnit_Framework_TestCase
 
         $result = $loader->loadSegments('D', '96A');
 
-        $this->assertEquals(1, count($result));
+        $this->assertGreaterThanOrEqual(1, count($result));
         /** @var SegmentMapping $segment */
         $segment = $result['ADR'];
         $this->assertEquals('ADR', $segment->getId());

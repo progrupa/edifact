@@ -100,7 +100,7 @@ abstract class Populator
         foreach ($classRefl->getProperties() as $propRefl) {
             $isSegmentPiece = $this->annotationReader->getPropertyAnnotation($propRefl, SegmentPiece::class);
             if ($isSegmentPiece) {
-                $piece = $segmentData[$isSegmentPiece->position];
+                $piece = isset($segmentData[$isSegmentPiece->position]) ? $segmentData[$isSegmentPiece->position] : null;
                 $propRefl->setAccessible(true);
                 if ($isSegmentPiece->parts) {
                     $value = array();

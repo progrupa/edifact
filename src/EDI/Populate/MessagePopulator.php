@@ -70,6 +70,9 @@ class MessagePopulator extends Populator
                     $expected = $this->nextExpectedSegment($expectedSegments);
                 }
             }
+            if ($expected && $expected->hasSegments()) {
+                $message->addSegments($expected->getSegments());
+            }
 
             $trailer = new MessageTrailer();
             $this->fillProperties($trailer, $segment);

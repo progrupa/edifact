@@ -7,6 +7,9 @@ use EDI\Message\Segment;
 
 class NAD
 {
+    const BUYER = 'BY';
+    const SELLER = 'SE';
+
     public static function create($partyQualifier, $partyId, $name, $address, $city, $postalCode, $country = null)
     {
         $segment = new Segment('NAD');

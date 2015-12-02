@@ -13,14 +13,19 @@ class SegmentPopulatorTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @test
-     * @expectedException \EDI\Exception\UnknownSegmentException
      */
-    public function should_throw_exception_if_unknown_segment()
+    public function should_return_raw_segment_if_unknown()
     {
         $populator = new SegmentPopulator();
 
         $data = [['XXX', '345', 'some data', ['whatever', 'content']]];
-        $populator->populate($data);
+        $segment = $populator->populate($data);
+
+        $rawData = $segment->getRawData();
+        $this->assertEquals(345, $rawData[1]);
+        $this->assertEquals('some data', $rawData[2]);
+        $this->assertEquals('whatever', $rawData[3][0]);
+        $this->assertEquals('content', $rawData[3][1]);
     }
 
     /** @test */

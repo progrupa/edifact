@@ -86,6 +86,10 @@ class MessageSegmentMapping
         }
     }
 
+    public function hasSegments()
+    {
+        return !empty($this->segments);
+    }
     /**
      * @return \EDI\Message\Segment[]
      */

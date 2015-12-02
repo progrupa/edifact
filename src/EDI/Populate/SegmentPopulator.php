@@ -48,14 +48,15 @@ class SegmentPopulator extends Populator
         $segmentData = array_shift($data);
         $code = $segmentData[0];
 
-        if (! isset($this->segmentConfig[$code])) {
-            throw new UnknownSegmentException(sprintf("Unknown segment found: %s", $code));
-        }
-        $config = $this->segmentConfig[$code];
         $segment = new Segment();
         $segment->setCode($code);
         $segment->setRawData($segmentData);
 
+        if (! isset($this->segmentConfig[$code])) {
+            return $segment;
+//            throw new UnknownSegmentException(sprintf("Unknown segment found: %s", $code));
+        }
+        $config = $this->segmentConfig[$code];
         $values = $this->transformValues($config->getDataElements(), $segmentData);
 
         foreach ($values as $k => $v) {
@@ -77,20 +78,27 @@ class SegmentPopulator extends Populator
         $values = array();
         /** @var DataElementMapping $dataMapping */
         foreach ($dataElementsMapping as $i => $dataMapping) {
+            $dataElementValue = null;
             if (! isset($segmentData[$i])) {
                 if ($dataMapping->isRequired()) {
                     throw new MandatorySegmentPieceMissing(sprintf("Segment %s missing piece '%s'", $segmentData[0], $dataMapping->getName()));
-                } else {
-                    $dataElementValue = null;
                 }
             } else {
                 if ($dataMapping->getType() == DataElementType::COMPOSITE) {
-                    $dataElementValue = $this->transformValues($dataMapping->getDataElements(), $segmentData[$i]);
+                    if (empty($segmentData[$i])) {
+                        if ($dataMapping->isRequired()) {
+                            throw new MandatorySegmentPieceMissing(sprintf("Segment %s missing piece '%s'", $segmentData[0], $dataMapping->getName()));
+                        }
+                    } else {
+                        $dataElementValue = $this->transformValues($dataMapping->getDataElements(), is_array($segmentData[$i]) ? $segmentData[$i] : [$segmentData[$i]]);
+                    }
                 } else {
                     $dataElementValue = $segmentData[$i];
                 }
             }
-            $values[$dataMapping->getName()] = $dataElementValue;
+            if (! is_null($dataElementValue)) {
+                $values[$dataMapping->getName()] = $dataElementValue;
+            }
         }
 
         return $values;

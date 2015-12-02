@@ -48,6 +48,27 @@ class MessageSegmentGroupMapping extends MessageSegmentMapping
         return $this->segmentMappings[0]->expectedCode();
     }
 
+    public function hasSegments()
+    {
+        return parent::hasSegments() || !empty($this->currentGroup) || !is_null($this->currentSegment);
+    }
+
+    public function getSegments()
+    {
+        if ($this->currentSegment) {
+            $this->currentGroup[] = $this->currentSegment;
+        }
+
+        $currentGroupSegments = $this->getCurrentGroupSegments();
+        if (! empty($currentGroupSegments)) {
+            $this->checkCurrentGroup();
+            $group = new SegmentGroup($this->getCode());
+            $group->setSegments($currentGroupSegments);
+            $this->segments[] = $group;
+        }
+        return parent::getSegments();
+    }
+
     public function acceptSegment(Segment $segment)
     {
         //  current segment mapping is accepting more segments
