@@ -3,7 +3,6 @@
 namespace EDI\Tests;
 
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use EDI\Exception\MandatorySegmentPieceMissing;
 use EDI\Mapping\MappingLoader;
 use EDI\Message\Interchange;

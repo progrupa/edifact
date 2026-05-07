@@ -2,7 +2,6 @@
 
 namespace EDI\Tests;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use EDI\Encoder;
 use EDI\Mapping\DataElementMapping;
 use EDI\Mapping\DataElementType;
@@ -47,7 +46,7 @@ class EncoderTest extends \PHPUnit_Framework_TestCase
         $mappingLoader = \Phake::mock(MappingLoader::class);
         \Phake::when($mappingLoader)->loadSegments(\Phake::anyParameters())->thenReturn(['XXX' => $segmentMapping]);
 
-        $encoder = new Encoder(new AnnotationPrinter(new AnnotationReader()), new SegmentPrinter(), $mappingLoader);
+        $encoder = new Encoder(new AnnotationPrinter(), new SegmentPrinter(), $mappingLoader);
 
         $result = $encoder->encode($interchange);
 

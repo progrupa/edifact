@@ -3,22 +3,19 @@
 namespace EDI\Message;
 
 
-use EDI\Annotations;
+use EDI\Annotations\Mandatory;
+use EDI\Annotations\Segment;
+use EDI\Annotations\SegmentPiece;
 
-/**
- * @Annotations\Segment("UNZ")
- */
+#[Segment("UNZ")]
 class InterchangeTrailer
 {
-    /**
-     * @Annotations\SegmentPiece(position="1")
-     * @Annotations\Mandatory
-     */
+    #[SegmentPiece(position: 1)]
+    #[Mandatory]
     private $controlCount;
-    /**
-     * @Annotations\SegmentPiece(position="2")
-     * @Annotations\Mandatory
-     */
+
+    #[SegmentPiece(position: 2)]
+    #[Mandatory]
     private $controlReference;
 
     /**

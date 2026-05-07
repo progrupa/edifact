@@ -9,7 +9,6 @@
 namespace EDI\Tests\Populate;
 
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use EDI\Mapping\MappingLoader;
 use EDI\Mapping\MessageMapping;
 use EDI\Message\Message;
@@ -122,7 +121,7 @@ class MessagePopulatorTest extends \PHPUnit_Framework_TestCase
      */
     private function givenPopulator(SegmentPopulator $segmentPopulator, $loader)
     {
-        $populator = new MessagePopulator(new AnnotationReader(), $segmentPopulator, $loader);
+        $populator = new MessagePopulator($segmentPopulator, $loader);
 
         return $populator;
     }

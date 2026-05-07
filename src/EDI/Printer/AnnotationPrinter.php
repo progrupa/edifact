@@ -3,38 +3,32 @@
 namespace EDI\Printer;
 
 
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\Reader;
 use EDI\Annotations\Segment;
 use EDI\Annotations\SegmentPiece;
 use EDI\Exception\AnnotationMissing;
 
 class AnnotationPrinter extends Printer
 {
-    /** @var  AnnotationReader */
-    private $annotationReader;
-
-    public function __construct(Reader $annotationReader)
-    {
-        $this->annotationReader = $annotationReader;
-    }
+    public function __construct() {}
 
     protected function getProperties($object)
     {
         $reflClass = new \ReflectionClass($object);
 
-        $codeAnnotation = $this->annotationReader->getClassAnnotation($reflClass, Segment::class);
-        if (! $codeAnnotation) {
-            throw new AnnotationMissing(sprintf("Missing @Segment annotation for class %", $reflClass->getName()));
+        $segmentAttrs = $reflClass->getAttributes(Segment::class);
+        if (empty($segmentAttrs)) {
+            throw new AnnotationMissing(sprintf("Missing #[Segment] attribute for class %s", $reflClass->getName()));
         }
+        $codeAnnotation = $segmentAttrs[0]->newInstance();
 
         $properties = [$codeAnnotation->value];
 
         foreach ($reflClass->getProperties() as $propRefl) {
             $propRefl->setAccessible(true);
-            /** @var SegmentPiece $isSegmentPiece */
-            $isSegmentPiece = $this->annotationReader->getPropertyAnnotation($propRefl, SegmentPiece::class);
-            if ($isSegmentPiece) {
+            $pieceAttrs = $propRefl->getAttributes(SegmentPiece::class);
+            if (!empty($pieceAttrs)) {
+                /** @var SegmentPiece $isSegmentPiece */
+                $isSegmentPiece = $pieceAttrs[0]->newInstance();
                 if (! $isSegmentPiece->parts) {
                     $properties[$isSegmentPiece->position] = $propRefl->getValue($object);
                 } else {

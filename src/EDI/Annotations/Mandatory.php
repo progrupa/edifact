@@ -2,10 +2,5 @@
 
 namespace EDI\Annotations;
 
-
-use Doctrine\Common\Annotations\Annotation;
-
-/**
- * @Annotation
- */
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
 final class Mandatory {}

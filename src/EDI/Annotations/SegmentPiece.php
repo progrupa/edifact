@@ -2,14 +2,11 @@
 
 namespace EDI\Annotations;
 
-
-use Doctrine\Common\Annotations\Annotation;
-
-/**
- * @Annotation
- */
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
 final class SegmentPiece
 {
-    public $position;
-    public $parts;
+    public function __construct(
+        public readonly int|string $position,
+        public readonly ?array $parts = null,
+    ) {}
 }

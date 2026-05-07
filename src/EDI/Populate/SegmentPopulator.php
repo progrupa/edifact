@@ -3,7 +3,6 @@
 namespace EDI\Populate;
 
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use EDI\Exception\MandatorySegmentPieceMissing;
 use EDI\Exception\UnknownSegmentException;
 use EDI\Mapping\DataElementMapping;
@@ -15,11 +14,6 @@ class SegmentPopulator extends Populator
 {
     /** @var SegmentMapping[] */
     private $segmentConfig = [];
-
-    public function __construct()
-    {
-        parent::__construct(new AnnotationReader());
-    }
 
     /**
      * @return \EDI\Mapping\SegmentMapping[]

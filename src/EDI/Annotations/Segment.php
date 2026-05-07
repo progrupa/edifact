@@ -2,12 +2,10 @@
 
 namespace EDI\Annotations;
 
-use Doctrine\Common\Annotations\Annotation;
-
-/**
- * @Annotation
- */
+#[\Attribute(\Attribute::TARGET_CLASS)]
 class Segment
 {
-    public $value;
+    public function __construct(
+        public readonly string $value,
+    ) {}
 }

@@ -7,6 +7,4 @@ call_user_func(function() {
 
     $loader = require $autoloadFile;
     $loader->add('EDI\Tests', __DIR__);
-
-    \Doctrine\Common\Annotations\AnnotationRegistry::registerAutoloadNamespace('EDI\Annotations', __DIR__.'/../src');
 });

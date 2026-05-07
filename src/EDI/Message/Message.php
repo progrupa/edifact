@@ -3,23 +3,21 @@
 namespace EDI\Message;
 
 
-use EDI\Annotations;
+use EDI\Annotations\Mandatory;
+use EDI\Annotations\Segment;
+use EDI\Annotations\SegmentPiece;
 
-/**
- * @Annotations\Segment("UNH")
- */
+#[Segment("UNH")]
 class Message
 {
-    /**
-     * @Annotations\SegmentPiece(position="1")
-     * @Annotations\Mandatory()
-     */
+    #[SegmentPiece(position: 1)]
+    #[Mandatory]
     private $referenceNumber;
-    /**
-     * @Annotations\SegmentPiece(position="2", parts={"type":{"@mandatory"}, "version":{"@mandatory"}, "release":{"@mandatory"}, "controllingAgency":{"@mandatory"}, "associationCode", "coeListVersion", "subfunction"})
-     * @Annotations\Mandatory
-     */
+
+    #[SegmentPiece(position: 2, parts: ["type" => ["@mandatory"], "version" => ["@mandatory"], "release" => ["@mandatory"], "controllingAgency" => ["@mandatory"], "associationCode", "coeListVersion", "subfunction"])]
+    #[Mandatory]
     private $identifier;
+
     private $commonAccessReference;
     private $transferStatus;
     private $subset;

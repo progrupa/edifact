@@ -9,7 +9,6 @@
 namespace EDI\Populate;
 
 
-use Doctrine\Common\Annotations\Reader;
 use EDI\Exception\IncorrectSegmentId;
 use EDI\Mapping\MappingLoader;
 use EDI\Mapping\MessageSegmentMapping;
@@ -24,9 +23,8 @@ class MessagePopulator extends Populator
     /** @var  MappingLoader */
     private $mappingLoader;
 
-    public function __construct(Reader $annotationReader, SegmentPopulator $segmentPopulator, MappingLoader $mappingLoader)
+    public function __construct(SegmentPopulator $segmentPopulator, MappingLoader $mappingLoader)
     {
-        parent::__construct($annotationReader);
         $this->segmentPopulator = $segmentPopulator;
         $this->mappingLoader = $mappingLoader;
     }

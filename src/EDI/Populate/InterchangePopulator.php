@@ -3,7 +3,6 @@
 namespace EDI\Populate;
 
 
-use Doctrine\Common\Annotations\Reader;
 use EDI\Message\Interchange;
 use EDI\Message\InterchangeTrailer;
 
@@ -12,9 +11,8 @@ class InterchangePopulator extends Populator
     /** @var  MessagePopulator */
     private $messagePopulator;
 
-    public function __construct(Reader $annotationReader, $messagePopulator)
+    public function __construct($messagePopulator)
     {
-        parent::__construct($annotationReader);
         $this->messagePopulator = $messagePopulator;
     }
 

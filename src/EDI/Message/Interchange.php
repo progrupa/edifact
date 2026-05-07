@@ -3,60 +3,48 @@
 namespace EDI\Message;
 
 
-use EDI\Annotations;
+use EDI\Annotations\Mandatory;
+use EDI\Annotations\Segment;
+use EDI\Annotations\SegmentPiece;
 
-/**
- * @Annotations\Segment("UNB")
- */
+#[Segment("UNB")]
 class Interchange
 {
-    /**
-     * @Annotations\SegmentPiece(position="1", parts={"name":{"@mandatory"}, "version":{"@mandatory"}, "serviceCodeList", "encoding"})
-     * @Annotations\Mandatory
-     */
+    #[SegmentPiece(position: 1, parts: ["name" => ["@mandatory"], "version" => ["@mandatory"], "serviceCodeList", "encoding"])]
+    #[Mandatory]
     private $syntax;
-    /**
-     * @Annotations\SegmentPiece(position="2", parts={"id":{"@mandatory"}, "codeQualifier", "internalId", "internalSubId"})
-     * @Annotations\Mandatory()
-     */
+
+    #[SegmentPiece(position: 2, parts: ["id" => ["@mandatory"], "codeQualifier", "internalId", "internalSubId"])]
+    #[Mandatory]
     private $sender;
-    /**
-     * @Annotations\SegmentPiece(position="3", parts={"id":{"@mandatory"}, "codeQualifier", "internalId", "internalSubId"})
-     * @Annotations\Mandatory()
-     */
+
+    #[SegmentPiece(position: 3, parts: ["id" => ["@mandatory"], "codeQualifier", "internalId", "internalSubId"])]
+    #[Mandatory]
     private $recipient;
-    /**
-     * @Annotations\SegmentPiece(position="4", parts={"date":{"@mandatory"}, "time":{"@mandatory"}})
-     * @Annotations\Mandatory()
-     */
+
+    #[SegmentPiece(position: 4, parts: ["date" => ["@mandatory"], "time" => ["@mandatory"]])]
+    #[Mandatory]
     private $time;
-    /**
-     * @Annotations\SegmentPiece(position="5")
-     */
+
+    #[SegmentPiece(position: 5)]
     private $controlReference;
-    /**
-     * @Annotations\SegmentPiece(position="6", parts={"password":{"@mandatory"}, "passwordQualifier"})
-     */
+
+    #[SegmentPiece(position: 6, parts: ["password" => ["@mandatory"], "passwordQualifier"])]
     private $recipientsReference;
-    /**
-     * @Annotations\SegmentPiece(position="7")
-     */
+
+    #[SegmentPiece(position: 7)]
     private $applicationReference;
-    /**
-     * @Annotations\SegmentPiece(position="8")
-     */
+
+    #[SegmentPiece(position: 8)]
     private $processingPriorityCode;
-    /**
-     * @Annotations\SegmentPiece(position="9")
-     */
+
+    #[SegmentPiece(position: 9)]
     private $acknowledgementRequest;
-    /**
-     * @Annotations\SegmentPiece(position="10")
-     */
+
+    #[SegmentPiece(position: 10)]
     private $agreementIdentifier;
-    /**
-     * @Annotations\SegmentPiece(position="11")
-     */
+
+    #[SegmentPiece(position: 11)]
     private $testIndicator;
 
     /** @var  Message[] */

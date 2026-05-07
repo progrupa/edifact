@@ -2,9 +2,6 @@
 
 namespace EDI;
 
-use Doctrine\Common\Annotations\AnnotationReader;
-use EDI\Annotations\Mandatory;
-use EDI\Annotations\SegmentPiece;
 use EDI\Exception\MandatorySegmentPieceMissing;
 use EDI\Exception\MappingNotFoundException;
 use EDI\Mapping\MappingLoader;

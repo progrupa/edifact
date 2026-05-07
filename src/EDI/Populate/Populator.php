@@ -3,7 +3,6 @@
 namespace EDI\Populate;
 
 
-use Doctrine\Common\Annotations\Reader;
 use EDI\Annotations\Mandatory;
 use EDI\Annotations\Segment;
 use EDI\Annotations\SegmentPiece;
@@ -14,14 +13,6 @@ use EDI\Message\Segment as MessageSegment;
 
 abstract class Populator
 {
-    /** @var  Reader */
-    private $annotationReader;
-
-    public function __construct(Reader $annotationReader)
-    {
-        $this->annotationReader = $annotationReader;
-    }
-
     abstract public function populate(&$data);
 
     protected function fillProperties($object, &$data)
@@ -59,7 +50,7 @@ abstract class Populator
 
     /**
      * @param $object
-     * @param $classRefl
+     * @param \ReflectionClass $classRefl
      * @param $segmentCode
      * @throws MandatorySegmentPieceMissing
      */
@@ -67,8 +58,8 @@ abstract class Populator
     {
         foreach ($classRefl->getProperties() as $propRefl) {
             $propRefl->setAccessible(true);
-            $isMandatory = $this->annotationReader->getPropertyAnnotation($propRefl, Mandatory::class);
-            if ($isMandatory && $this->isEmpty($propRefl->getValue($object))) {
+            $attrs = $propRefl->getAttributes(Mandatory::class);
+            if (!empty($attrs) && $this->isEmpty($propRefl->getValue($object))) {
                 throw new MandatorySegmentPieceMissing(sprintf("Segment %s missing mandatory property %s value",
                     $segmentCode, $propRefl->getName()));
             }
@@ -82,7 +73,9 @@ abstract class Populator
      */
     protected function checkSegmentCode($classRefl, $segmentCode)
     {
-        if ($segmentAnnotation = $this->annotationReader->getClassAnnotation($classRefl, Segment::class)) {
+        $attrs = $classRefl->getAttributes(Segment::class);
+        if (!empty($attrs)) {
+            $segmentAnnotation = $attrs[0]->newInstance();
             if ($segmentCode != $segmentAnnotation->value) {
                 throw new IncorrectSegmentId(sprintf("Expected %s segment, %s found", $segmentAnnotation->value, $segmentCode));
             }
@@ -91,15 +84,16 @@ abstract class Populator
 
     /**
      * @param $object
-     * @param $classRefl
+     * @param \ReflectionClass $classRefl
      * @param $segmentData
      * @throws MandatorySegmentPieceMissing
      */
     protected function fillFromArray($object, $classRefl, $segmentData)
     {
         foreach ($classRefl->getProperties() as $propRefl) {
-            $isSegmentPiece = $this->annotationReader->getPropertyAnnotation($propRefl, SegmentPiece::class);
-            if ($isSegmentPiece) {
+            $attrs = $propRefl->getAttributes(SegmentPiece::class);
+            if (!empty($attrs)) {
+                $isSegmentPiece = $attrs[0]->newInstance();
                 $piece = isset($segmentData[$isSegmentPiece->position]) ? $segmentData[$isSegmentPiece->position] : null;
                 $propRefl->setAccessible(true);
                 if ($isSegmentPiece->parts) {

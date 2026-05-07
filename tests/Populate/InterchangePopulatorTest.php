@@ -9,7 +9,6 @@
 namespace EDI\Tests\Populate;
 
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use EDI\Mapping\MappingLoader;
 use EDI\Message\Interchange;
 use EDI\Parser;
@@ -97,7 +96,7 @@ class InterchangePopulatorTest extends \PHPUnit_Framework_TestCase
                 return array();
             }
         );
-        $populator = new InterchangePopulator(new AnnotationReader(), $messagePopulator);
+        $populator = new InterchangePopulator($messagePopulator);
 
         return $populator;
     }
